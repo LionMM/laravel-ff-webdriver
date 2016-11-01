@@ -1,0 +1,37 @@
+{
+  "name": "lionmm/laravel-ff-webdriver",
+  "description": "Selenium Firefox web-driver interface for Laravel 5.2",
+  "type": "library",
+  "keywords": [
+    "selenium",
+    "firefox",
+    "webdriver",
+    "laravel"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Kirill Snovidov",
+      "email": "kirill@snovidov.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9",
+    "laravel/framework": "5.2.*",
+    "facebook/webdriver": "^1.2"
+  },
+  "require-dev": {
+    "phpspec/prophecy": "^1.6",
+    "phpunit/phpunit": "^5.6"
+  },
+  "autoload": {
+    "psr-0": {
+      "LionMM\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-0": {
+      "LionMM\\": "tests/"
+    }
+  }
+}

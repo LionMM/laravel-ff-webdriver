@@ -1,6 +1,6 @@
 {
   "name": "lionmm/laravel-ff-webdriver",
-  "description": "Selenium Firefox web-driver interface for Laravel 5.2",
+  "description": "Selenium Firefox web-driver interface for Laravel 5.1.* - 5.2.*",
   "type": "library",
   "keywords": [
     "selenium",

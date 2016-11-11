@@ -1,12 +1,13 @@
 Laravel ff webdriver
 ========
 
-[![Latest Stable Version](https://poser.pugx.org/lionmm/laravel-ff-webdriver/v/stable)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
-[![Latest Unstable Version](https://poser.pugx.org/lionmm/laravel-ff-webdriver/v/unstable)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
+[![Latest Stable Version](https://img.shields.io/packagist/v/lionmm/laravel-ff-webdriver.svg?style=flat-square)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
+[![Total Downloads](https://img.shields.io/packagist/dt/lionmm/laravel-ff-webdriver.svg?style=flat-square)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
+[![License](https://img.shields.io/packagist/l/lionmm/laravel-ff-webdriver.svg?style=flat-square)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
 
-[![Total Downloads](https://poser.pugx.org/lionmm/laravel-ff-webdriver/downloads)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
-
-[![License](https://poser.pugx.org/lionmm/laravel-ff-webdriver/license)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
+[![GitHub tag](https://img.shields.io/github/tag/LionMM/laravel-ff-webdriver.svg?style=flat-square)]()
+[![GitHub release](https://img.shields.io/github/release/LionMM/laravel-ff-webdriver.svg?style=flat-square)]()
+[![Github All Releases](https://img.shields.io/github/downloads/LionMM/laravel-ff-webdriver/total.svg?style=flat-square)]()
 
 
 Selenium Firefox web-driver interface for Laravel 5.2.
@@ -49,7 +50,7 @@ Add the `WebDriver` facade to the end of the `aliases` array as well
 ),
 ```
 
-Now publish the configuration file for laravel-ff-webdriver (if need it):
+Now publish the configuration file for laravel-ff-webdriver _(if need it)_:
 
     $ php artisan vendor:publish --provider="LionMM\WebDriver\WebDriverServiceProvider"
 
@@ -61,7 +62,7 @@ For using library you must install and run [Selenium server](http://www.selenium
 
 By default, library try to connect to `http://localhost:4444/wd/hub`
 
-You can change that path in `config/webdriver.php` _(see below)_
+You can change that path in `config/webdriver.php` _(see above)_
 
 ### Using library
 
@@ -74,9 +75,29 @@ Also, you can make instance of `\LionMM\WebDriver\WebDriver` class
 use LionMM\WebDriver\WebDriver;
 
 class Foo {
+
     public function Bar()
     {
         $webDriver = \App::make(WebDriver::class); // use \App::make for DI
+    }
+}
+```
+
+OR
+
+```php
+<?php
+
+use LionMM\WebDriver\WebDriver;
+
+class Foo {
+
+    /** @var WebDriver  */
+    private $webDriver;
+
+    public function __construct(WebDriver $webDriver)
+    {
+        $this->webDriver = $webDriver;
     }
 }
 ```
@@ -90,6 +111,7 @@ Next step - you must init Driver with method `initDriver($parameters, $request_t
 
 ```
 Instead, the parameter `lang` You can specify directly `'accept_languages' => 'ru-RU,ru,en,en-US,uk'`
+
 By default flash is enabled and `accept_languages` set to `ru-RU,ru,en,en-US,uk`
 
 

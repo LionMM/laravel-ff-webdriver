@@ -25,13 +25,13 @@
     "phpunit/phpunit": "^5.6"
   },
   "autoload": {
-    "psr-0": {
-      "LionMM\\": "src/"
+    "psr-4": {
+      "LionMM\\WebDriver\\": "src/"
     }
   },
   "autoload-dev": {
-    "psr-0": {
-      "LionMM\\": "tests/"
+    "psr-4": {
+      "Tests\\": "tests/"
     }
   }
 }

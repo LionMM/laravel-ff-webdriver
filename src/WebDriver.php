@@ -19,10 +19,13 @@ use Symfony\Component\Console\Output\ConsoleOutput;
  */
 class WebDriver
 {
+
+    private $remoteWebDriverClass = RemoteWebDriver::class;
     /**
      * @var int
      */
-    const DEFAULT_WAIT_TIMEOUT = 6;
+    const DEFAULT_WAIT_TIMEOUT = 10;
+
     /**
      * @var null|ConsoleOutput
      */
@@ -35,7 +38,7 @@ class WebDriver
     /**
      * @var FirefoxProfile
      */
-    private $ffProfile;
+    private $firefoxProfile;
 
     /**
      * WebDriver constructor.
@@ -45,7 +48,7 @@ class WebDriver
     public function __construct(ConsoleOutput $consoleOutput, FirefoxProfile $firefoxProfile)
     {
         $this->output = $consoleOutput;
-        $this->ffProfile = $firefoxProfile;
+        $this->firefoxProfile = $firefoxProfile;
     }
 
     /**
@@ -76,16 +79,34 @@ class WebDriver
             $this->output->writeln('<info>WebDriver instance initialising</info>');
 
 
-            $profile = $this->setUpPreferences($this->ffProfile, $configuration);
+            $profile = $this->setUpPreferences($this->firefoxProfile, $configuration);
 
 
             $firefoxCapabilities = $this->setUpCapabilities($profile, $configuration);
 
-            $url = config('webdriver.host') . ':' . config('webdriver.port') . config('webdriver.path');
-            $this->driver = RemoteWebDriver::create($url, $firefoxCapabilities, 5000, $request_time_limit);
+            $driver = $this->createDriverInstance($firefoxCapabilities, $request_time_limit);
+            $this->setDriver($driver);
         }
 
         return $this;
+    }
+
+    /**
+     * @param $firefoxCapabilities
+     * @param $request_time_limit
+     * @return mixed
+     */
+    private function createDriverInstance($firefoxCapabilities, $request_time_limit)
+    {
+        return RemoteWebDriver::create($this->getWebDriverUrl(), $firefoxCapabilities, 5000, $request_time_limit);
+    }
+
+    /**
+     * @return string
+     */
+    private function getWebDriverUrl()
+    {
+        return config('webdriver.host') . ':' . config('webdriver.port') . config('webdriver.path');
     }
 
     /**
@@ -188,7 +209,7 @@ class WebDriver
      */
     public function getCookies()
     {
-        return $this->driver->manage()->execute(DriverCommand::GET_ALL_COOKIES);
+        return $this->driver->manage()->getCookies();
     }
 
 
@@ -236,7 +257,7 @@ class WebDriver
 
         try {
             $this->driver
-                ->wait($wait, 1000)
+                ->wait($wait)
                 ->until(WebDriverExpectedCondition::presenceOfAllElementsLocatedBy($selector, $need));
         } catch (\Exception $e) {
             return false;
@@ -263,7 +284,7 @@ class WebDriver
 
         try {
             $this->driver
-                ->wait($wait, 1000)
+                ->wait($wait)
                 ->until(WebDriverExpectedCondition::presenceOfAllElementsLocatedBy($selector, $need));
         } catch (\Exception $e) {
             return [];
@@ -337,5 +358,21 @@ class WebDriver
         }
 
         return $this->driver->executeScript($script, $arguments);
+    }
+
+    /**
+     * @return JavaScriptExecutor|\Facebook\WebDriver\WebDriver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
+    }
+
+    /**
+     * @param \Facebook\WebDriver\WebDriver $driver
+     */
+    public function setDriver(\Facebook\WebDriver\WebDriver $driver)
+    {
+        $this->driver = $driver;
     }
 }

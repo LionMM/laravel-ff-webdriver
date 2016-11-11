@@ -2,7 +2,6 @@
 
 namespace LionMM\WebDriver;
 
-use Facebook\WebDriver\WebDriver;
 use Facebook\WebDriver\WebDriverBy;
 
 class WebDriverExpectedCondition extends \Facebook\WebDriver\WebDriverExpectedCondition
@@ -14,7 +13,6 @@ class WebDriverExpectedCondition extends \Facebook\WebDriver\WebDriverExpectedCo
     {
         return new static(
             function ($driver) use ($by, $need) {
-                /** @var WebDriver $driver */
                 $elements = $driver->findElements($by);
 
                 return count($elements) >= $need ? $elements : null;

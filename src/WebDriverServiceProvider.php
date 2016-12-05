@@ -1,5 +1,6 @@
 <?php namespace LionMM\WebDriver;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -25,8 +26,8 @@ class WebDriverServiceProvider extends ServiceProvider
         $configPath = __DIR__ . '/config/webdriver.php';
         $this->mergeConfigFrom($configPath, 'webdriver');
 
-        $this->app->singleton('webdriver', function ($app) {
-            return new WebDriver($app);
+        $this->app->singleton('webdriver', function (Application $app) {
+            return $app->make(WebDriver::class);
         });
     }
 

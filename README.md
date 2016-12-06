@@ -20,7 +20,9 @@ Collect all mostly used methods in one class and give providers and aliases for 
 
 * Laravel 5.3.x: `in developing`
 
-* Laravel 5.1.x to 5.2.x: `dev-master`
+* Laravel 5.2.x: `1.0.1`
+
+* Laravel 5.1.x: `0.1.2`
 
 * Laravel < 5.1: `not supported`
 

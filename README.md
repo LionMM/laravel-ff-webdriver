@@ -80,7 +80,7 @@ class Foo {
 
     public function Bar()
     {
-        $webDriver = \App::make(WebDriver::class); // use \App::make for DI
+        $webDriver = \App::make('webdriver'); // use \App::make for DI and 'webdriver' for singleton
     }
 }
 ```

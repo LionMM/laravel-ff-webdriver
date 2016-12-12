@@ -56,9 +56,8 @@ class WebDriver
      */
     public function __destruct()
     {
-        if (isset($this->driver) && $this->driver) {
+        if ($this->driver) {
             $this->quit();
-            $this->output->writeln('<info>WebDriver instance destructing</info>');
         }
     }
 
@@ -167,7 +166,8 @@ class WebDriver
         if ($this->driver) {
             sleep($sec);
             $this->driver->quit();
-            unset($this->driver);
+            $this->driver = null;
+            $this->output->writeln('<info>WebDriver instance unloaded</info>');
         }
     }
 

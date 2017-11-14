@@ -1,13 +1,14 @@
 <?php namespace LionMM\WebDriver;
 
+use Facebook\WebDriver\Cookie;
 use Facebook\WebDriver\Exception\WebDriverException;
 use Facebook\WebDriver\Firefox\FirefoxDriver;
 use Facebook\WebDriver\Firefox\FirefoxProfile;
 use Facebook\WebDriver\JavaScriptExecutor;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
-use Facebook\WebDriver\Remote\DriverCommand;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\WebDriverCapabilityType;
+use Facebook\WebDriver\WebDriver AS OriginalWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverCapabilities;
 use Facebook\WebDriver\WebDriverElement;
@@ -19,25 +20,15 @@ use Symfony\Component\Console\Output\ConsoleOutput;
  */
 class WebDriver
 {
-
-    private $remoteWebDriverClass = RemoteWebDriver::class;
-    /**
-     * @var int
-     */
     const DEFAULT_WAIT_TIMEOUT = 10;
 
-    /**
-     * @var null|ConsoleOutput
-     */
-    private $output = null;
-    /**
-     * @var \Facebook\WebDriver\WebDriver|JavaScriptExecutor
-     */
-    private $driver = null;
+    /** @var ConsoleOutput */
+    private $output;
 
-    /**
-     * @var FirefoxProfile
-     */
+    /**  @var OriginalWebDriver|JavaScriptExecutor */
+    private $driver;
+
+    /** @var FirefoxProfile */
     private $firefoxProfile;
 
     /**
@@ -51,9 +42,6 @@ class WebDriver
         $this->firefoxProfile = $firefoxProfile;
     }
 
-    /**
-     *
-     */
     public function __destruct()
     {
         if ($this->driver) {
@@ -64,26 +52,25 @@ class WebDriver
     /**
      * @param array $configuration
      * @param int $request_time_limit
-     * @return $this
-     * @throws WebDriverException
+     * @param string $webdriverUrl
+     * @return WebDriver
      */
     public function initDriver(
         array $configuration = [],
-        $request_time_limit = 50000
-    ) {
+        $request_time_limit = 50000,
+        $webdriverUrl = 'http://localhost:4444/wd/hub'
+    ): self {
         if ($this->driver) {
             $this->output->writeln('<info>WebDriver instance already initialised</info>');
 
         } else {
             $this->output->writeln('<info>WebDriver instance initialising</info>');
 
-
             $profile = $this->setUpPreferences($this->firefoxProfile, $configuration);
-
 
             $firefoxCapabilities = $this->setUpCapabilities($profile, $configuration);
 
-            $driver = $this->createDriverInstance($firefoxCapabilities, $request_time_limit);
+            $driver = $this->createDriverInstance($webdriverUrl, $firefoxCapabilities, $request_time_limit);
             $this->setDriver($driver);
         }
 
@@ -91,21 +78,14 @@ class WebDriver
     }
 
     /**
+     * @param $webdriverUrl
      * @param $firefoxCapabilities
      * @param $request_time_limit
-     * @return mixed
+     * @return RemoteWebDriver
      */
-    private function createDriverInstance($firefoxCapabilities, $request_time_limit)
+    private function createDriverInstance($webdriverUrl, $firefoxCapabilities, $request_time_limit): RemoteWebDriver
     {
-        return RemoteWebDriver::create($this->getWebDriverUrl(), $firefoxCapabilities, 5000, $request_time_limit);
-    }
-
-    /**
-     * @return string
-     */
-    private function getWebDriverUrl()
-    {
-        return config('webdriver.host') . ':' . config('webdriver.port') . config('webdriver.path');
+        return RemoteWebDriver::create($webdriverUrl, $firefoxCapabilities, 5000, $request_time_limit);
     }
 
     /**
@@ -117,18 +97,18 @@ class WebDriver
      * @return FirefoxProfile
      * @throws WebDriverException
      */
-    private function setUpPreferences(FirefoxProfile $profile, array $preferences = [])
+    private function setUpPreferences(FirefoxProfile $profile, array $preferences = []): FirefoxProfile
     {
         $accept_languages = 'ru-RU,ru,en,en-US,uk';
-        if (array_get($preferences, 'accept_languages')) {
-            $accept_languages = array_get($preferences, 'accept_languages');
-        } elseif (array_get($preferences, 'lang') === 'en') {
+        if ($preferences['accept_languages'] ?? false) {
+            $accept_languages = $preferences['accept_languages'];
+        } elseif (($preferences['lang'] ?? false) === 'en') {
             $accept_languages = 'en,en-us,ru-RU,ru,uk';
         }
 
         $profile->setPreference('intl.accept_languages', $accept_languages);
 
-        if (array_get($preferences, 'no-flash')) {
+        if ($preferences['no-flash'] ?? false) {
             $profile->setPreference('plugin.state.flash', 0);
             $profile->setPreference('dom.ipc.plugins.enabled.libflashplayer.so', false);
             $profile->setPreference('dom.ipc.plugins.flash.subprocess.crashreporter.enabled', false);
@@ -142,15 +122,15 @@ class WebDriver
      * @param array $capabilities
      * @return WebDriverCapabilities
      */
-    private function setUpCapabilities($profile, array $capabilities = [])
+    private function setUpCapabilities($profile, array $capabilities = []): WebDriverCapabilities
     {
         $firefoxCapabilities = DesiredCapabilities::firefox();
         $firefoxCapabilities->setCapability(FirefoxDriver::PROFILE, $profile);
-        if ($capabilities && array_get($capabilities, 'proxy', false)) {
+        if ($capabilities && isset($capabilities['proxy'])) {
             $firefoxCapabilities->setCapability(WebDriverCapabilityType::PROXY, [
                 'proxyType' => 'manual',
-                'httpProxy' => array_get($capabilities, 'proxy'),
-                'sslProxy' => array_get($capabilities, 'proxy'),
+                'httpProxy' => $capabilities['proxy'],
+                'sslProxy' => $capabilities['proxy'],
             ]);
         }
 
@@ -159,9 +139,10 @@ class WebDriver
 
     /**
      * Quits driver, closing every associated window.
+     *
      * @param int $sec
      */
-    public function quit($sec = 0)
+    public function quit($sec = 0): void
     {
         if ($this->driver) {
             sleep($sec);
@@ -175,9 +156,9 @@ class WebDriver
      * Load a new web page in the current browser window.
      *
      * @param string $url
-     * @return $this The current instance.
+     * @return self The current instance.
      */
-    public function get($url)
+    public function get($url): self
     {
         $this->output->writeln('    <info>opening page: ' . $url . '</info>');
 
@@ -192,9 +173,9 @@ class WebDriver
     /**
      * Delete all the cookies that are currently visible.
      *
-     * @return $this The current instance.
+     * @return self The current instance.
      */
-    public function deleteAllCookies()
+    public function deleteAllCookies(): self
     {
         $this->driver->manage()->deleteAllCookies();
         $this->output->writeln('    <info>Cookies deleted</info>');
@@ -205,11 +186,25 @@ class WebDriver
     /**
      * Get all the cookies for the current domain.
      *
-     * @return array The array of cookies presented.
+     * @return Cookie[] The array of cookies presented.
      */
-    public function getCookies()
+    public function getCookies(): array
     {
         return $this->driver->manage()->getCookies();
+    }
+
+
+    /**
+     * Add a specific cookie
+     *
+     * @param Cookie|array $cookie Cookie object. May be also created from array for compatibility reasons.
+     * @return self
+     */
+    public function addCookie($cookie): self
+    {
+        $this->driver->manage()->addCookie($cookie);
+
+        return $this;
     }
 
 
@@ -218,7 +213,7 @@ class WebDriver
      *
      * @return string The current URL.
      */
-    public function getCurrentURL()
+    public function getCurrentURL(): string
     {
         return $this->driver->getCurrentURL();
     }
@@ -228,7 +223,7 @@ class WebDriver
      *
      * @return string The current page source.
      */
-    public function getPageSource()
+    public function getPageSource(): string
     {
         return $this->driver->getPageSource();
     }
@@ -238,7 +233,7 @@ class WebDriver
      *
      * @return string The title of the current page.
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->driver->getTitle();
     }
@@ -248,9 +243,9 @@ class WebDriver
      * @param WebDriverBy $selector
      * @param int $index
      * @param int $timeout
-     * @return bool|WebDriverElement
+     * @return WebDriverElement|null
      */
-    public function waitForElement(WebDriverBy $selector, $index = 0, $timeout = 0)
+    public function waitForElement(WebDriverBy $selector, $index = 0, $timeout = 0): ?WebDriverElement
     {
         $need = $index + 1;
         $wait = $timeout ?: self::DEFAULT_WAIT_TIMEOUT;
@@ -260,24 +255,24 @@ class WebDriver
                 ->wait($wait)
                 ->until(WebDriverExpectedCondition::presenceOfAllElementsLocatedBy($selector, $need));
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         $elements = $this->driver->findElements($selector);
         if (count($elements)) {
-            return (isset($elements[$index]) ? $elements[$index] : array_pop($elements));
+            return ($elements[$index] ?? array_pop($elements));
         }
 
-        return false;
+        return null;
     }
 
     /**
      * @param WebDriverBy $selector
      * @param int $need
      * @param int $timeout
-     * @return array
+     * @return WebDriverElement[]
      */
-    public function getAllElements(WebDriverBy $selector, $need = 0, $timeout = 0)
+    public function getAllElements(WebDriverBy $selector, $need = 0, $timeout = 0): array
     {
         $need = $need ?: 1;
         $wait = $timeout ?: self::DEFAULT_WAIT_TIMEOUT;
@@ -296,22 +291,22 @@ class WebDriver
 
     /**
      * @param WebDriverBy $selector
-     * @return bool|WebDriverElement
+     * @return WebDriverElement
      */
-    public function checkForElement(WebDriverBy $selector)
+    public function checkForElement(WebDriverBy $selector): ?WebDriverElement
     {
         $elements = $this->driver->findElements($selector);
 
-        return count($elements) > 0 ? array_shift($elements) : false;
+        return count($elements) > 0 ? array_shift($elements) : null;
     }
 
     /**
      * Switch to the iframe by its id or name.
      *
      * @param $element WebDriverElement|string $frame The WebDriverElement, the id or the name of the frame.
-     * @return $this The driver focused on the given frame.
+     * @return self The driver focused on the given frame.
      */
-    public function switchToFrame($element)
+    public function switchToFrame($element): self
     {
         $this->driver->switchTo()->frame($element);
 
@@ -322,9 +317,9 @@ class WebDriver
      * Switch to the main document if the page contains iframes. Otherwise, switch
      * to the first frame on the page.
      *
-     * @return $this The driver focused on the top window or the first frame.
+     * @return self The driver focused on the top window or the first frame.
      */
-    public function switchToDefaultContent()
+    public function switchToDefaultContent(): self
     {
         $this->driver->switchTo()->defaultContent();
 
@@ -337,7 +332,7 @@ class WebDriver
      * @param string $save_as The path of the screenshot to be saved.
      * @return string The screenshot in PNG format.
      */
-    public function takeScreenshot($save_as = null)
+    public function takeScreenshot($save_as = null): string
     {
         return $this->driver->takeScreenshot($save_as);
     }
@@ -369,10 +364,13 @@ class WebDriver
     }
 
     /**
-     * @param \Facebook\WebDriver\WebDriver $driver
+     * @param OriginalWebDriver $driver
+     * @return self
      */
-    public function setDriver(\Facebook\WebDriver\WebDriver $driver)
+    public function setDriver(OriginalWebDriver $driver): self
     {
         $this->driver = $driver;
+
+        return $this;
     }
 }

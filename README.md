@@ -1,4 +1,4 @@
-Laravel ff webdriver
+Webdriver adapter (for Larave or standalone usage)
 ========
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/lionmm/laravel-ff-webdriver.svg?style=flat-square)](https://packagist.org/packages/lionmm/laravel-ff-webdriver)
@@ -10,11 +10,13 @@ Laravel ff webdriver
 [![Github All Releases](https://img.shields.io/github/downloads/LionMM/laravel-ff-webdriver/total.svg?style=flat-square)]()
 
 
-Selenium Firefox web-driver interface for Laravel 5.2.
+Selenium Firefox web-driver adapter  (for Laravel 5.2.* and standalone use)
 
 This package uses the facebook's [php-webdriver](https://github.com/facebook/php-webdriver) library
 
-Collect all mostly used methods in one class and give providers and aliases for working vs it 
+Collect all mostly used methods in one class and give providers and aliases for working vs it
+
+Now can be used standalone
 
 ## Laravel supporting
 
@@ -28,9 +30,11 @@ Collect all mostly used methods in one class and give providers and aliases for 
 
 ## Quick start
 
-### Laravel 5.1.x to 5.2.x
+### Install 
 
-Run `composer require lionmm/laravel-ff-webdriver dev-master`
+Run `composer require lionmm/laravel-ff-webdriver`
+
+### Laravel 5.1.x to 5.2.x
 
 In your `config/app.php` add `LionMM\WebDriver\WebDriverServiceProvider::class,` to the end of the `providers` array
 
@@ -112,8 +116,15 @@ Next step - you must init Driver with method `initDriver($parameters, $request_t
 \WebDriver::initDriver(['lang' => 'en', 'no-flash' => true, 'proxy' => '220.155.15.133:8080'], 50000);
 
 ```
+
 Instead, the parameter `lang` You can specify directly `'accept_languages' => 'ru-RU,ru,en,en-US,uk'`
 
+```php
+<?php
+
+\WebDriver::initDriver(['accept_languages' => 'ru-RU,ru,en,en-US,uk', 'no-flash' => false, 'proxy' => '220.155.15.133:8080'], 50000, 'http:hub.site:5555/wd/hub');
+
+```
 By default flash is enabled and `accept_languages` set to `ru-RU,ru,en,en-US,uk`
 
 
@@ -137,6 +148,7 @@ Use method `get($url)` for  load a new web page in the current browser window.
 * `quit($wait = 0)`: run automatically in `__destruct()` method. Quits driver, closing every associated window. (hope this...)
 * `deleteAllCookies()`: Delete all the cookies that are currently visible.
 * `getCookies()`: Get all the cookies for the current domain.
+* `addCookie($cookie)`: Add a specific cookie.
 * `getCurrentURL()`: Get a string representing the current URL that the browser is looking at
 * `getTitle()`: Get the title of the current page.
 * `getPageSource()`: Get the source of the last loaded page.

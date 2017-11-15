@@ -191,6 +191,10 @@ class WebDriver
      */
     public function getCookies(): array
     {
+        if (!$this->driver->manage()) {
+            return [];
+        }
+
         return $this->driver->manage()->getCookies();
     }
 
@@ -237,10 +241,10 @@ class WebDriver
      *
      *
      * @param array|string $cookiesSource Path to file or array of cookies data
-     * @param bool $openBlankPage Set up cookies is possible only when the page is open,
+     * @param string $openUrl Set up cookies is possible only when the page is open,
      * @return bool
      */
-    public function restoreSerializedCookies($cookiesSource, $openBlankPage = false): bool
+    public function restoreSerializedCookies($cookiesSource, string $openUrl = null): bool
     {
         if (is_string($cookiesSource)) {
             $cookiesJson = @file_get_contents($cookiesSource);
@@ -248,8 +252,8 @@ class WebDriver
         }
 
         if (is_array($cookiesSource)) {
-            if ($openBlankPage) {
-                $this->get('about:blank');
+            if ($openUrl) {
+                $this->get($openUrl);
             }
             foreach ($cookiesSource as $cookieArray) {
                 $this->addCookie($cookieArray);

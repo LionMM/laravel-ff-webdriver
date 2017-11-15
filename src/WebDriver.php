@@ -217,7 +217,13 @@ class WebDriver
      */
     public function saveSerializedCookies($pathToSave = null): string
     {
-        $cookiesArray = $this->getCookies();
+        $cookiesArray = [];
+        $cookiesObjectsArray = $this->getCookies();
+        if ($cookiesObjectsArray) {
+            foreach ($cookiesObjectsArray as $cookieObject) {
+                $cookiesArray[] = $cookieObject->toArray();
+            }
+        }
         $cookiesJson = json_encode($cookiesArray);
 
         if ($pathToSave) {

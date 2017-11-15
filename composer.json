@@ -18,7 +18,7 @@
   "require": {
     "php": ">=7.1",
     "symfony/console": "^3.3",
-    "facebook/webdriver": "^1.2"
+    "facebook/webdriver": "^1.5"
   },
   "require-dev": {
     "phpspec/prophecy": "^1.6",

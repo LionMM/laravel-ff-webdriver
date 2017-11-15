@@ -12,6 +12,7 @@ use Facebook\WebDriver\WebDriver AS OriginalWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverCapabilities;
 use Facebook\WebDriver\WebDriverElement;
+use Facebook\WebDriver\WebDriverHasInputDevices;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
@@ -25,7 +26,7 @@ class WebDriver
     /** @var ConsoleOutput */
     private $output;
 
-    /**  @var OriginalWebDriver|JavaScriptExecutor */
+    /**  @var OriginalWebDriver|JavaScriptExecutor|WebDriverHasInputDevices */
     private $driver;
 
     /** @var FirefoxProfile */
@@ -209,6 +210,53 @@ class WebDriver
 
 
     /**
+     *
+     *
+     * @param string|null $pathToSave
+     * @return string JSON stringify cookies
+     */
+    public function saveSerializedCookies($pathToSave = null): string
+    {
+        $cookiesArray = $this->getCookies();
+        $cookiesJson = json_encode($cookiesArray);
+
+        if ($pathToSave) {
+            @file_put_contents($pathToSave, $cookiesJson);
+        }
+
+        return $cookiesJson;
+    }
+
+    /**
+     *
+     *
+     * @param array|string $cookiesSource Path to file or array of cookies data
+     * @param bool $openBlankPage Set up cookies is possible only when the page is open,
+     * @return bool
+     */
+    public function restoreSerializedCookies($cookiesSource, $openBlankPage = false): bool
+    {
+        if (is_string($cookiesSource)) {
+            $cookiesJson = @file_get_contents($cookiesSource);
+            $cookiesSource = json_decode($cookiesJson ?? '', true);
+        }
+
+        if (is_array($cookiesSource)) {
+            if ($openBlankPage) {
+                $this->get('about:blank');
+            }
+            foreach ($cookiesSource as $cookieArray) {
+                $this->addCookie($cookieArray);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
      * Get a string representing the current URL that the browser is looking at.
      *
      * @return string The current URL.
@@ -356,7 +404,7 @@ class WebDriver
     }
 
     /**
-     * @return JavaScriptExecutor|\Facebook\WebDriver\WebDriver
+     * @return OriginalWebDriver|JavaScriptExecutor|WebDriverHasInputDevices
      */
     public function getDriver()
     {

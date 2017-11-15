@@ -56,10 +56,6 @@ Add the `WebDriver` facade to the end of the `aliases` array as well
 ),
 ```
 
-Now publish the configuration file for laravel-ff-webdriver _(if need it)_:
-
-    $ php artisan vendor:publish --provider="LionMM\WebDriver\WebDriverServiceProvider"
-
 ## Usage
 
 ### Selenium requirement
